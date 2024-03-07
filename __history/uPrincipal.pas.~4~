@@ -1,0 +1,80 @@
+unit uPrincipal;
+
+interface
+
+uses
+  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
+  Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.StdCtrls;
+
+type
+  TfrmPrincipal = class(TForm)
+    Label1: TLabel;
+    Edit1: TEdit;
+    Memo1: TMemo;
+  private
+    { Private declarations }
+
+  public
+    { Public declarations }
+  end;
+
+var
+  frmPrincipal: TfrmPrincipal;
+
+implementation
+
+{$R *.dfm}
+
+uses Horse, Horse.Jhonson, System.Json;
+var
+
+objMemo1: TMemo;
+
+begin
+
+  objMemo1:=TMemo.Create(frmPrincipal);
+  with objMemo1 do
+  begin
+
+    Parent  := frmPrincipal;
+    Name  := 'objMemo1';
+    Left    := 16;
+    Top     := 12;
+    Width   := 233;
+    Height  := 200;
+
+
+  end;
+
+  THorse.Use(Jhonson);
+
+
+  THorse.Get('/ping',
+    procedure(Req: THorseRequest; Res: THorseResponse)
+    begin
+      Res.Send('pong');
+    end);
+
+    THorse.Post('/OnCarHandled',
+    procedure(Req: THorseRequest; Res: THorseResponse; Next: TProc)
+    var
+      LBody: TJSONObject;
+    begin
+       objMemo1.Lines.Add(LBody.ToString);
+
+      // Req.Body gives access to the content of the request in string format.
+      // Using jhonson middleware, we can get the content of the request in JSON format.
+
+      LBody := Req.Body<TJSONObject>;
+      Res.Send<TJSONObject>(LBody);
+    end);
+
+  THorse.Listen(9000);
+
+
+
+
+
+
+
+end.
